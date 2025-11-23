@@ -30,6 +30,37 @@ The SDK files under `src/x402` expect the following environment variables:
 
 Ensure these are set before invoking `callPaidEndpoint` or importing the wallet helper.
 
+## 0G Storage Integration
+
+The application integrates with 0G Storage for decentralized model storage. When saving models in the builder, they are automatically uploaded to 0G Storage.
+
+### Environment Variables
+
+Add the following to your `.env.local` file:
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `ZG_PRIVATE_KEY` | Private key for signing 0G Storage transactions (required) | - |
+| `NEXT_PUBLIC_0G_EVM_RPC` | EVM RPC endpoint for 0G | `https://evmrpc-testnet.0g.ai` |
+| `NEXT_PUBLIC_0G_INDEXER_RPC` | Indexer RPC endpoint for 0G | `https://indexer-storage-testnet-turbo.0g.ai` |
+
+### Usage
+
+1. Set up your `ZG_PRIVATE_KEY` in `.env.local`
+2. When saving a model in the builder, it will:
+   - Save to localStorage (always)
+   - Upload to 0G Storage (if `ZG_PRIVATE_KEY` is configured)
+   - Return a root hash that can be used to retrieve the model later
+
+### Features
+
+- **Automatic Upload**: Models are automatically uploaded to 0G Storage when saved
+- **Fallback**: If 0G upload fails, models are still saved locally
+- **Root Hash**: Each uploaded model receives a unique root hash for retrieval
+- **Storage Utilities**: See `lib/storage.ts` for upload/download functions
+
+For more information, see the [0G Storage Documentation](https://docs.0g.ai/developer-hub/building-on-0g/storage/sdk).
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -363,7 +363,7 @@ export default function BuilderPage() {
     }
   };
 
-  const handleSaveModel = useCallback(() => {
+  const handleSaveModel = useCallback(async () => {
     if (!modelName.trim()) {
       alert('Please enter a model name');
       return;
@@ -382,11 +382,39 @@ export default function BuilderPage() {
     savedModels.push(modelData);
     localStorage.setItem('openio-saved-models', JSON.stringify(savedModels));
     
-    // Clear the model name input
-    setModelName('');
-    
-    // Show success message
-    alert(`Model "${modelData.name}" saved successfully!`);
+    // Upload to 0G Storage
+    try {
+      const response = await fetch('/api/models/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(modelData)
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update model data with rootHash
+        const updatedModelData = { ...modelData, rootHash: result.rootHash };
+        const updatedModels = savedModels.map((m: any) => 
+          m.id === modelData.id ? updatedModelData : m
+        );
+        localStorage.setItem('openio-saved-models', JSON.stringify(updatedModels));
+        
+        // Clear the model name input
+        setModelName('');
+        
+        // Show success message with rootHash
+        alert(`Model "${modelData.name}" saved successfully!\n\n0G Storage Hash: ${result.rootHash}`);
+      } else {
+        // Still saved locally even if 0G upload fails
+        setModelName('');
+        alert(`Model "${modelData.name}" saved locally.\n\n0G Storage upload failed: ${result.error}`);
+      }
+    } catch (error) {
+      // Still saved locally even if 0G upload fails
+      setModelName('');
+      alert(`Model "${modelData.name}" saved locally.\n\n0G Storage upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }, [nodes, edges, modelName]);
 
   return (
