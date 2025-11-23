@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import DecoderText from './DecoderText';
 
 interface TerminalProps {
@@ -14,7 +15,7 @@ export default function Terminal({ output, title = 'Terminal' }: TerminalProps) 
     
     if (contractMatches.length > 0) {
       // Split line by all instances of "contract" and render each with decoder effect
-      const parts: (string | JSX.Element)[] = [];
+      const parts: (string | React.ReactElement)[] = [];
       let lastIndex = 0;
       
       contractMatches.forEach((match, matchIndex) => {
