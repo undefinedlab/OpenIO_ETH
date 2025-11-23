@@ -6,7 +6,7 @@ import * as os from 'os'
 
 const EVM_RPC = process.env.NEXT_PUBLIC_0G_EVM_RPC || 'https://evmrpc-testnet.0g.ai'
 const INDEXER_RPC = process.env.NEXT_PUBLIC_0G_INDEXER_RPC || 'https://indexer-storage-testnet-turbo.0g.ai'
-const PRIVATE_KEY = process.env.ZG_PRIVATE_KEY || ''
+const PRIVATE_KEY = process.env.ZG_PRIVATE_KEY || '0x417bb2428a2e3cf31e71b048c9f6780bbbd4edf7ef30f131d53dece22e3f4c6b'
 
 export async function uploadJSONTo0G(data: any, tempFileName: string = 'model.json'): Promise<string> {
   if (!PRIVATE_KEY) {

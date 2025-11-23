@@ -1,0 +1,40 @@
+﻿d472afd9d26ae0aa4387b1ec3fe5f06b376cbcb8|Initial commit from Create Next App
+39f07940cc067e34b05e7906bb8311b0baea346a|Add logo and about page
+7fdf290085c4531182402b3784ede9cdf10a37a9|Add dapp components: CardScanner, DappTabs, DappMainContent, DappHeader, DappFeatures, DappContent, and ThreeBackground
+6da2ea0a15302306cb5f3cd0e975cf5e59792f57|Add CardEffect component
+d10a5c98a5ab01f0e290e5697a39de19950c9d96|Update CardEffect component and globals.css
+48a564200fdb1c1a98f584249993208aba8e69c2|Update globals.css
+728582ef58ca6ac19461b67682dae65324321b58|Add dapp builder page with components (Terminal, FileExplorer, CodeEditor, AIChat) and pricing page
+2c47f81c98c84850d5f814f93c41d72573f8f0b7|Update globals.css
+b2cca840424eaeaf3c6d996e6c56fd9e124828d8|Update globals.css
+443e2317f180be32a4e9a37b23d2c43c22b3c05b|Update globals.css
+50f9e37aafc1690815bb112185f99b24c84b095e|Update globals.css and package.json
+d3f1335e15756d1470e3295386e6d1912839ed6e|Move app directory from src/app to root level
+ef00642342c68a80028bebbda95ae19d4c5f08d6|Update app files and package-lock.json
+ec79ec4849c2cef5f8b033779275ca0135295a9c|Add React Flow builder, rename builder to deploy, add community forum, update navbar
+5b50ffb54cb809ab500ba668f2c85da0867955b5|Fix builder page viewport and styling, improve forum post stats cards
+97124b24461daf6c4c72d76ad6bebe284d1ab175|Add unified models data source and models page with filters
+eb2d9d0684b3aa85c11e6f9685e9047fee7da15d|Improve models page styling: LayerZero-style design, remove icons, horizontal category layout, remove operations category
+ec5f9e79af2028f368ebc8fc700fef2e74ad4439|Make builder dropdowns more compact with n8n-style design
+7d0ab2d2e09d19991dc1c70ea7dd195691af4bf5|Add AI assistant sidebar to builder, create profile page with earnings stats, style community page like models, add docs page, hide pricing button
+eee63188839f1f599f8d4a8a900c18addd9e4a18|Add settings panel to profile page with logout and account options
+77c820e4269400f888c808e0f1803e15dd9b16e2|Add theme toggle with icons, update backgrounds to black/white, improve text contrast, and add logo filter for light mode
+5a062aa0f5d3a70fd59d0472ba5934c2eee1d8c1|Update globals.css and layout.tsx
+0b1339e32c7e20fb26ae40f994f7270bbe32231d|Add code mode to builder, improve card animations, and add page fade-in effects
+ce8f9cf639dbdccb783c8c2f9984d3352fb91f08|Merge remote-tracking branch 'new-origin/main'
+86b47b475d3eec7367277650089b0445542fe12d|Fix Vercel build: exclude 0g directory from TypeScript compilation
+585094d9557a4674a4f6e03fa6a6f3868ab56678|Merge branch 'master' of https://github.com/undefinedlab/OpenIO
+ed86463220e19875906a5acf219cca4c11256129|Fix Turbopack build error: add empty turbopack config
+648978e4fd4cbb45c162b0d2883ead731974e57e|Fix TypeScript error: add initial value to useRef for animationFrameRef
+3dfbd2c76dd9209f41bc12524ace8239e0a12497|Fix TypeScript error: check preventDefault exists before calling on MouseEvent 
+f6274f1319899803273a3b837d6374d5e61e9055|Fix TypeScript error: add initial value to useRef for animationFrameRef in ThreeBackground
+31721304ea7c8c7da5ba476a4f9b61a891425762|Fix TypeScript configuration: add types to resolve React JSX issues
+87457a8f0e52308d0b4fbafee16c96f4ee9e6e13|Fix TypeScript error: add Record type to files state in deploy page
+73577d65925e97092a3e1f3a663284873dd64596|Add Save Model button to node module builder
+93ed2e1a1045bb9c8d755b2538b0c6d14a59789b|Initial commit
+23554d7ea29ed4edb8e067bd8df907e0219880a2|Complete merge
+37935cf00e0f1e2d8aa1bf7aaf0476b93ac64e75|Fix TypeScript error: Initialize message variable before use
+08fbab56d2488336081f071da83a4d44718da863|Merge madschristensen/main: resolve conflict in chat route
+0b609daab4d4ee4bbb3dac4324d67a6b21478a9a|Update UI: Add openio branding, set node mode as default, configure horizontal node connectors, update model selections
+636ff4bed52ed0c49f328a5e364e1d792ac48949|Add Run tab features: decoder text effect, folder structure, compile improvements, and UI updates
+646fd7fbfb9d2f12dc28723f16faeb4becaecaef|Update project files and remove symbiotic directory

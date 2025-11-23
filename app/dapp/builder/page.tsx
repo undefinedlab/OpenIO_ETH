@@ -8,6 +8,7 @@ import { models, getModelsByCategory, ModelCategory } from '../../data/models';
 import AIChat from '../components/AIChat';
 import CodeEditor from '../components/CodeEditor';
 import FileExplorer from '../components/FileExplorer';
+import Terminal from '../components/Terminal';
 
 const initialNodes: Node[] = [];
 
@@ -58,6 +59,7 @@ export default function BuilderPage() {
   const [selectedCustom, setSelectedCustom] = useState('');
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(true);
   const [modelName, setModelName] = useState<string>('');
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   
   // Code Mode state
   const [customModules, setCustomModules] = useState<CustomModule[]>([]);
@@ -165,8 +167,6 @@ export default function BuilderPage() {
         category 
       },
       type: 'default',
-      sourcePosition: 'right',
-      targetPosition: 'left',
       style: {
         background: `linear-gradient(135deg, ${color}15, ${color}25)`,
         border: `2px solid ${color}`,
@@ -377,12 +377,22 @@ export default function BuilderPage() {
       savedAt: new Date().toISOString(),
     };
     
+    // Clear console and show initial message
+    setConsoleOutput([
+      `> Saving model "${modelData.name}"...`,
+      `> Saving to local storage...`
+    ]);
+    
     // Save to localStorage
     const savedModels = JSON.parse(localStorage.getItem('openio-saved-models') || '[]');
     savedModels.push(modelData);
     localStorage.setItem('openio-saved-models', JSON.stringify(savedModels));
     
+    setConsoleOutput(prev => [...prev, `✓ Saved to local storage`]);
+    
     // Upload to 0G Storage
+    setConsoleOutput(prev => [...prev, `> Uploading to 0G Storage...`]);
+    
     try {
       const response = await fetch('/api/models/save', {
         method: 'POST',
@@ -403,16 +413,36 @@ export default function BuilderPage() {
         // Clear the model name input
         setModelName('');
         
-        // Show success message with rootHash
-        alert(`Model "${modelData.name}" saved successfully!\n\n0G Storage Hash: ${result.rootHash}`);
+        // Show success in console
+        setConsoleOutput(prev => [
+          ...prev,
+          `✓ 0G Storage upload successful!`,
+          `✓ Root Hash: ${result.rootHash}`,
+          `✓ Model "${modelData.name}" saved successfully!`,
+          ``
+        ]);
+        
+        alert(`Model "${modelData.name}" saved successfully!\n\n✓ Test text saved to 0G Storage\nHash: ${result.rootHash}`);
       } else {
         // Still saved locally even if 0G upload fails
         setModelName('');
+        setConsoleOutput(prev => [
+          ...prev,
+          `✗ 0G Storage upload failed: ${result.error}`,
+          `✓ Model saved locally only`,
+          ``
+        ]);
         alert(`Model "${modelData.name}" saved locally.\n\n0G Storage upload failed: ${result.error}`);
       }
     } catch (error) {
       // Still saved locally even if 0G upload fails
       setModelName('');
+      setConsoleOutput(prev => [
+        ...prev,
+        `✗ 0G Storage upload error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `✓ Model saved locally only`,
+        ``
+      ]);
       alert(`Model "${modelData.name}" saved locally.\n\n0G Storage upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }, [nodes, edges, modelName]);
@@ -731,6 +761,15 @@ export default function BuilderPage() {
               </div>
             )}
           </div>
+        </div>
+        
+        {/* 0G Storage Console */}
+        <div style={{ 
+          width: '100%', 
+          marginTop: '20px',
+          padding: '0 20px 20px 20px'
+        }}>
+          <Terminal output={consoleOutput} title="0G Storage Status" />
         </div>
       </div>
     </>

@@ -5,17 +5,29 @@ export async function POST(request: NextRequest) {
   try {
     const modelData = await request.json();
     
-    // Upload model to 0G Storage
+    // Create a simple test text object to save to 0G Storage
+    const testData = {
+      testText: 'This is a simple test text saved to 0G Storage',
+      timestamp: new Date().toISOString(),
+      modelName: modelData.name || 'Untitled Model',
+      modelId: modelData.id || `model-${Date.now()}`,
+      savedAt: new Date().toISOString(),
+    };
+    
+    // Upload test data to 0G Storage
     const rootHash = await uploadJSONTo0G(
-      modelData,
-      `openio-model-${modelData.id || Date.now()}.json`
+      testData,
+      `openio-test-${Date.now()}.json`
     );
+    
+    console.log('✓ Successfully saved to 0G Storage:', rootHash);
     
     return NextResponse.json({
       success: true,
       rootHash,
-      message: 'Model saved to 0G Storage successfully',
+      message: 'Test text saved to 0G Storage successfully',
       modelId: modelData.id,
+      testData,
     });
   } catch (error) {
     console.error('0G Storage upload error:', error);

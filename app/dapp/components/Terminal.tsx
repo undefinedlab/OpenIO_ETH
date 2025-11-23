@@ -4,9 +4,10 @@ import DecoderText from './DecoderText';
 
 interface TerminalProps {
   output: string[];
+  title?: string;
 }
 
-export default function Terminal({ output }: TerminalProps) {
+export default function Terminal({ output, title = 'Terminal' }: TerminalProps) {
   const renderLine = (line: string, index: number) => {
     const lowerLine = line.toLowerCase();
     const contractMatches = [...lowerLine.matchAll(/contract/gi)];
@@ -82,12 +83,12 @@ export default function Terminal({ output }: TerminalProps) {
   return (
     <div className="terminal">
       <div className="terminal-header">
-        <span className="terminal-title">Terminal</span>
+        <span className="terminal-title">{title}</span>
       </div>
       <div className="terminal-content">
         {output.length === 0 ? (
           <div className="terminal-empty">
-            <span className="terminal-prompt">$</span> Ready to compile and deploy
+            <span className="terminal-prompt">$</span> {title === '0G Storage Status' ? 'Ready to save models to 0G Storage' : 'Ready to compile and deploy'}
           </div>
         ) : (
           output.map((line, index) => renderLine(line, index))

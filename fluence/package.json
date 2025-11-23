@@ -1,0 +1,18 @@
+{
+  "name": "fluence-test-compute",
+  "version": "1.0.0",
+  "description": "Simple test computing application for Fluence Network deployment",
+  "main": "test-compute.js",
+  "scripts": {
+    "start": "node test-compute.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "fluence",
+    "compute",
+    "decentralized"
+  ],
+  "author": "",
+  "license": "ISC"
+}
+
