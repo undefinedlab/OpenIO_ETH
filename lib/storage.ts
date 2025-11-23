@@ -24,7 +24,7 @@ export async function uploadJSONTo0G(data: any, tempFileName: string = 'model.js
     const indexer = new Indexer(INDEXER_RPC)
 
     const file = await ZgFile.fromFilePath(tempPath)
-    const [tx, err] = await indexer.upload(file, EVM_RPC, signer)
+    const [tx, err] = await indexer.upload(file, EVM_RPC, signer as any)
 
     if (err !== null) {
       await file.close()
