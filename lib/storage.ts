@@ -40,6 +40,10 @@ export async function uploadJSONTo0G(data: any, tempFileName: string = 'model.js
     const rootHash = tree.rootHash()
     await file.close()
 
+    if (!rootHash) {
+      throw new Error('Failed to get root hash from merkle tree')
+    }
+
     // Clean up temp file
     if (fs.existsSync(tempPath)) {
       fs.unlinkSync(tempPath)
