@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { execSync } from 'child_process';
-import { writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+import { Client } from 'ssh2';
 
 // Fluence VM Configuration
 const FLUENCE_VM_IP = process.env.FLUENCE_VM_IP || '81.15.150.156';
@@ -15,6 +15,101 @@ interface ComputeRequest {
   a: number;
   b: number;
   sourceCode?: string;
+}
+
+// Helper function to execute SSH commands using ssh2
+async function executeSSHCommand(
+  host: string,
+  username: string,
+  privateKey: string,
+  command: string
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const conn = new Client();
+    let output = '';
+    let errorOutput = '';
+
+    conn.on('ready', () => {
+      conn.exec(command, (err: Error | undefined, stream: any) => {
+        if (err) {
+          conn.end();
+          reject(err);
+          return;
+        }
+
+        stream.on('close', (code: number) => {
+          conn.end();
+          if (code !== 0) {
+            reject(new Error(`Command failed with code ${code}: ${errorOutput || output}`));
+          } else {
+            resolve(output);
+          }
+        });
+
+        stream.on('data', (data: Buffer) => {
+          output += data.toString();
+        });
+
+        stream.stderr.on('data', (data: Buffer) => {
+          errorOutput += data.toString();
+        });
+      });
+    });
+
+    conn.on('error', (err: Error) => {
+      reject(err);
+    });
+
+    conn.connect({
+      host,
+      username,
+      privateKey,
+      readyTimeout: 20000,
+    });
+  });
+}
+
+// Helper function to write file to remote server using ssh2
+async function writeFileToRemote(
+  host: string,
+  username: string,
+  privateKey: string,
+  remotePath: string,
+  content: string
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const conn = new Client();
+
+    conn.on('ready', () => {
+      conn.sftp((err: Error | undefined, sftp: any) => {
+        if (err) {
+          conn.end();
+          reject(err);
+          return;
+        }
+
+        sftp.writeFile(remotePath, content, (writeErr: Error | undefined) => {
+          conn.end();
+          if (writeErr) {
+            reject(writeErr);
+          } else {
+            resolve();
+          }
+        });
+      });
+    });
+
+    conn.on('error', (err: Error) => {
+      reject(err);
+    });
+
+    conn.connect({
+      host,
+      username,
+      privateKey,
+      readyTimeout: 20000,
+    });
+  });
 }
 
 /**
@@ -140,34 +235,26 @@ console.log(JSON.stringify({
       // Copy script to VM and execute
       const remoteScriptPath = `/tmp/test-${Date.now()}.js`;
       
-      // Normalize Windows path for SSH (convert backslashes to forward slashes)
-      const normalizedKeyPath = sshKeyPath.replace(/\\/g, '/');
-      const normalizedScriptPath = tempScriptPath.replace(/\\/g, '/');
+      console.log(`Using SSH key: ${sshKeyPath}`);
+      console.log(`Copying script to remote: ${remoteScriptPath}`);
       
-      console.log(`Using SSH key: ${normalizedKeyPath}`);
-      console.log(`Copying script: ${normalizedScriptPath}`);
+      // Read the private key
+      const privateKey = readFileSync(sshKeyPath, 'utf8');
       
-      // Step 1: Copy script to VM with proper SSH key
-      const scpCommand = `scp -i "${normalizedKeyPath}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${normalizedScriptPath}" ${FLUENCE_VM_USER}@${FLUENCE_VM_IP}:${remoteScriptPath}`;
-      
+      // Step 1: Copy script to VM using ssh2
       try {
-        execSync(scpCommand, { stdio: 'pipe', timeout: 15000 });
+        await writeFileToRemote(FLUENCE_VM_IP, FLUENCE_VM_USER, privateKey, remoteScriptPath, computeScript);
         console.log('Script copied successfully');
-      } catch (scpError: any) {
-        console.error('SCP error:', scpError.message);
-        console.error('STDERR:', scpError.stderr?.toString());
-        console.error('STDOUT:', scpError.stdout?.toString());
+      } catch (copyError: any) {
+        console.error('File copy error:', copyError.message);
         
         // Return detailed error
         return NextResponse.json({
           success: false,
-          error: `Failed to copy script to VM: ${scpError.message}`,
+          error: `Failed to copy script to VM: ${copyError.message}`,
           details: {
-            command: scpCommand,
-            keyPath: normalizedKeyPath,
+            keyPath: sshKeyPath,
             keyExists: fs.existsSync(sshKeyPath),
-            stderr: scpError.stderr?.toString(),
-            stdout: scpError.stdout?.toString(),
             suggestion: 'Make sure the SSH key is added to the Fluence dashboard. The public key must match the private key being used.'
           }
         }, { status: 500 });
@@ -175,26 +262,18 @@ console.log(JSON.stringify({
 
       // Step 2: Execute script on VM
       // First check if Node.js is available, if not, install it or use alternative
-      const checkNodeCommand = `ssh -i "${normalizedKeyPath}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${FLUENCE_VM_USER}@${FLUENCE_VM_IP} "which node || echo 'NODE_NOT_FOUND'"`;
-      
       let nodeAvailable = true;
       try {
-        const nodeCheck = execSync(checkNodeCommand, { encoding: 'utf8', stdio: 'pipe', timeout: 5000 }).toString().trim();
-        if (nodeCheck === 'NODE_NOT_FOUND' || nodeCheck === '') {
+        const nodeCheck = await executeSSHCommand(FLUENCE_VM_IP, FLUENCE_VM_USER, privateKey, 'which node || echo "NODE_NOT_FOUND"');
+        if (nodeCheck.trim() === 'NODE_NOT_FOUND' || nodeCheck.trim() === '') {
           nodeAvailable = false;
         }
       } catch {}
 
       let output: string;
       if (nodeAvailable) {
-        const sshCommand = `ssh -i "${normalizedKeyPath}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${FLUENCE_VM_USER}@${FLUENCE_VM_IP} "node ${remoteScriptPath}"`;
-        
         try {
-          output = execSync(sshCommand, { 
-            encoding: 'utf8',
-            stdio: 'pipe',
-            timeout: 30000 
-          }).toString();
+          output = await executeSSHCommand(FLUENCE_VM_IP, FLUENCE_VM_USER, privateKey, `node ${remoteScriptPath}`);
         } catch (sshError: any) {
           throw new Error(`SSH execution failed: ${sshError.message}`);
         }
@@ -224,40 +303,29 @@ print(json.dumps({
     'timestamp': __import__('datetime').datetime.now().isoformat()
 }))
 `;
-        const pythonScriptPath = join(tmpdir(), `test-${Date.now()}.py`);
-        writeFileSync(pythonScriptPath, pythonScript);
-        
-        // Copy Python script
         const pythonRemotePath = `/tmp/test-${Date.now()}.py`;
-        const scpPythonCommand = `scp -i "${normalizedKeyPath}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${pythonScriptPath}" ${FLUENCE_VM_USER}@${FLUENCE_VM_IP}:${pythonRemotePath}`;
         
         try {
-          execSync(scpPythonCommand, { stdio: 'pipe', timeout: 10000 });
-        } catch (scpError: any) {
-          throw new Error(`Failed to copy Python script: ${scpError.message}`);
+          await writeFileToRemote(FLUENCE_VM_IP, FLUENCE_VM_USER, privateKey, pythonRemotePath, pythonScript);
+        } catch (copyError: any) {
+          throw new Error(`Failed to copy Python script: ${copyError.message}`);
         }
         
-        const sshPythonCommand = `ssh -i "${normalizedKeyPath}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${FLUENCE_VM_USER}@${FLUENCE_VM_IP} "python3 ${pythonRemotePath}"`;
-        
         try {
-          output = execSync(sshPythonCommand, { encoding: 'utf8', stdio: 'pipe', timeout: 30000 }).toString();
+          output = await executeSSHCommand(FLUENCE_VM_IP, FLUENCE_VM_USER, privateKey, `python3 ${pythonRemotePath}`);
         } catch (sshError: any) {
           throw new Error(`Python execution failed: ${sshError.message}`);
         }
         
         // Clean up remote Python script
         try {
-          const cleanupPythonCommand = `ssh -i "${normalizedKeyPath}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${FLUENCE_VM_USER}@${FLUENCE_VM_IP} "rm ${pythonRemotePath}"`;
-          execSync(cleanupPythonCommand, { stdio: 'pipe', timeout: 5000 });
+          await executeSSHCommand(FLUENCE_VM_IP, FLUENCE_VM_USER, privateKey, `rm ${pythonRemotePath}`);
         } catch {}
-        
-        unlinkSync(pythonScriptPath);
       }
 
       // Step 3: Clean up remote script
       try {
-        const cleanupCommand = `ssh -i "${normalizedKeyPath}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${FLUENCE_VM_USER}@${FLUENCE_VM_IP} "rm ${remoteScriptPath}"`;
-        execSync(cleanupCommand, { stdio: 'pipe', timeout: 5000 });
+        await executeSSHCommand(FLUENCE_VM_IP, FLUENCE_VM_USER, privateKey, `rm ${remoteScriptPath}`);
       } catch {}
 
       // Clean up local temp file
