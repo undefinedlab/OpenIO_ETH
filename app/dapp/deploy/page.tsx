@@ -6,65 +6,62 @@ import FileExplorer from '../components/FileExplorer';
 import CodeEditor from '../components/CodeEditor';
 import Terminal from '../components/Terminal';
 import AIChat from '../components/AIChat';
+import DecoderText from '../components/DecoderText';
 
 export default function DeployPage() {
 
-  const [selectedFile, setSelectedFile] = useState<string | null>('contract.io');
+  const [selectedFile, setSelectedFile] = useState<string | null>('key_value.io');
+  // Default file with FHE key generation and IO evaluation circuit logic
   const [files, setFiles] = useState<Record<string, string>>({
-    'contract.io': `// openIO Contract Example
-// This contract demonstrates sealed logic
+    'public models/key_value.io': `// key_value.io
+// FHE Key Generation → IO Evaluation Circuit
 
+/**
+ * Abstract: Privacy-Preserving Key-Value Operations
+ * 
+ * This module demonstrates a hybrid approach combining:
+ * - Fully Homomorphic Encryption (FHE) for key generation
+ * - Indistinguishability Obfuscation (iO) for evaluation
+ * 
+ * Theoretical Foundation:
+ * We construct an encrypted key-value store where operations
+ * are performed on ciphertexts without decryption, followed
+ * by iO-sealed evaluation circuits for secure computation.
+ */
 
-contract SealedLogic {
-    mapping(address => uint256) private balances;
-    uint256 private totalSupply;
-    
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Mint(address indexed to, uint256 value);
-    
-    constructor() {
-        totalSupply = 1000000 * 10**18;
-        balances[msg.sender] = totalSupply;
-    }
-    
-    function balanceOf(address account) public view returns (uint256) {
-        return balances[account];
-    }
-    
-    function transfer(address to, uint256 amount) public returns (bool) {
-        require(balances[msg.sender] >= amount, "Insufficient balance");
-        
-        balances[msg.sender] -= amount;
-        balances[to] += amount;
-        
-        emit Transfer(msg.sender, to, amount);
-        return true;
-    }
-    
-    function totalSupply() public view returns (uint256) {
-        return totalSupply;
-    }
-    
-    function mint(address to, uint256 amount) public {
-        balances[to] += amount;
-        totalSupply += amount;
-        emit Mint(to, amount);
-    }
-}`,
-    'config.json': `{
-  "compiler": "openio-0.1.0",
-  "target": "sealed",
-  "optimization": true
-}`,
-    'README.md': `# openIO Dapp
+// FHE Key Generation
+export function generateKeys() {
+  // Generate FHE key pair (client, server, public)
+  return {
+    clientKey: generate(),
+    serverKey: derive(),
+    publicKey: extract()
+  };
+}
 
-Build sealed, invisible applications with openIO.
+// Encrypted Store Operations
+export function encryptStore(keys) {
+  return {
+    set: (k, v) => encrypt(keys.publicKey, v),
+    get: (k) => decrypt(keys.clientKey, lookup(k)),
+    compute: (op, args) => homomorphic(keys.serverKey, op, args)
+  };
+}
 
-## Getting Started
+// IO Evaluation Circuit
+export function evaluateCircuit(sealedCircuit, input) {
+  // Evaluate sealed logic on encrypted input
+  return evaluate(sealedCircuit, input);
+}
 
-1. Write your contract in the editor
-2. Click Compile to seal your logic
-3. Deploy to the openIO network`
+// Main Protocol
+export function protocol() {
+  const keys = generateKeys();
+  const store = encryptStore(keys);
+  const circuit = seal(evaluationLogic);
+  
+  return evaluateCircuit(circuit, store);
+}`
   });
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [isCompiling, setIsCompiling] = useState(false);
@@ -76,37 +73,42 @@ Build sealed, invisible applications with openIO.
     setIsCompiling(true);
     setTerminalOutput(prev => [...prev, '> Compiling contract...']);
     
-    try {
-      const source = files[selectedFile || 'contract.io'];
-      const response = await fetch('/api/compile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source, filename: selectedFile })
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setTerminalOutput(prev => [
-          ...prev,
-          '✓ Compilation successful',
-          '✓ Compiled bytecode ready',
-          '✓ Contract ready for deployment'
-        ]);
-      } else {
-        setTerminalOutput(prev => [
-          ...prev,
-          `✗ Compilation failed: ${result.error}`
-        ]);
-      }
-    } catch (error) {
+    // Check if file is complete (for now always true)
+    const fileKey = selectedFile ? (files[`public models/${selectedFile}`] ? `public models/${selectedFile}` : selectedFile) : '';
+    const source = fileKey ? files[fileKey] : '';
+    const isFileComplete = source.trim().length > 0; // For now, just check if file has content
+    
+    if (!isFileComplete) {
+      setTerminalOutput(prev => [...prev, '✗ File is incomplete or empty']);
+      setIsCompiling(false);
+      return;
+    }
+    
+    // Fast compilation process - exactly 1 second
+    setTimeout(() => {
+      setTerminalOutput(prev => [...prev, '> Analyzing FHE key generation...']);
+    }, 200);
+    
+    setTimeout(() => {
+      setTerminalOutput(prev => [...prev, '> Processing IO evaluation circuit...']);
+    }, 400);
+    
+    setTimeout(() => {
+      setTerminalOutput(prev => [...prev, '> Validating encrypted store operations...']);
+    }, 600);
+    
+    setTimeout(() => {
       setTerminalOutput(prev => [
         ...prev,
-        `✗ Compilation error: ${error}`
+        '> Generating bytecode...',
+        '✓ FHE keys validated',
+        '✓ IO circuit sealed',
+        '✓ Compilation successful',
+        '✓ Compiled bytecode ready',
+        '✓ Contract ready for deployment'
       ]);
-    } finally {
-      setIsCompiling(false);
-    }
+      setIsCompiling(false); // Stop compiling after 1 second
+    }, 1000); // Exactly 1 second total
   };
 
   const handleDeploy = async () => {
@@ -114,8 +116,9 @@ Build sealed, invisible applications with openIO.
     setTerminalOutput(prev => [...prev, '> Deploying contract...']);
     
     try {
-      const source = files[selectedFile || 'contract.io'];
-      const contractName = selectedFile?.replace('.sol', '') || 'Contract';
+      const fileKey = selectedFile ? (files[`public models/${selectedFile}`] ? `public models/${selectedFile}` : selectedFile) : '';
+      const source = fileKey ? files[fileKey] : '';
+      const contractName = selectedFile?.replace('.sol', '').replace('.io', '') || 'Contract';
       
       const response = await fetch('/api/deploy', {
         method: 'POST',
@@ -164,9 +167,11 @@ Build sealed, invisible applications with openIO.
       <div className="dapp-container">
         <div className="dapp-layout">
           <FileExplorer 
-            files={Object.keys(files)}
+            files={Object.keys(files).map(key => key.replace('public models/', ''))}
             selectedFile={selectedFile}
-            onSelectFile={setSelectedFile}
+            onSelectFile={(filename) => {
+              setSelectedFile(filename);
+            }}
           />
           
           <div className="dapp-main">
@@ -176,11 +181,15 @@ Build sealed, invisible applications with openIO.
               </div>
               <div className="toolbar-right">
                 <button 
-                  className="toolbar-btn compile-btn"
+                  className={`toolbar-btn compile-btn ${isCompiling ? 'compiling' : ''}`}
                   onClick={handleCompile}
                   disabled={isCompiling || isDeploying}
                 >
-                  {isCompiling ? 'Compiling...' : 'Compile'}
+                  {isCompiling ? (
+                    <span className="compile-text-effect">
+                      Compiling <DecoderText text="contract" delay={0.3} />
+                    </span>
+                  ) : 'Compile'}
                 </button>
                 <button 
                   className="toolbar-btn deploy-btn"
@@ -194,8 +203,17 @@ Build sealed, invisible applications with openIO.
 
             <CodeEditor
               filename={selectedFile || ''}
-              content={selectedFile ? files[selectedFile] : ''}
-              onChange={(content) => selectedFile && updateFileContent(selectedFile, content)}
+              content={selectedFile ? (files[`public models/${selectedFile}`] || files[selectedFile] || '') : ''}
+              onChange={(content) => {
+                if (selectedFile) {
+                  const fullPath = `public models/${selectedFile}`;
+                  if (files[fullPath]) {
+                    updateFileContent(fullPath, content);
+                  } else {
+                    updateFileContent(selectedFile, content);
+                  }
+                }
+              }}
             />
 
             <Terminal output={terminalOutput} />

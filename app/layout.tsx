@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 
+const shareTechMono = {
+  className: "font-share-tech-mono",
+  style: {
+    fontFamily: "'Share Tech Mono', monospace",
+  },
+};
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

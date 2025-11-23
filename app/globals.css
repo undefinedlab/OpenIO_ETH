@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -23,6 +24,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* Hide scrollbars globally */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 body {
@@ -1306,6 +1317,43 @@ body.light-mode .dapp-container {
   padding: 6px;
 }
 
+.folder-container {
+  margin-bottom: 4px;
+}
+
+.folder-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.folder-header:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 1);
+}
+
+.folder-icon {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.folder-name {
+  flex: 1;
+}
+
+.folder-content {
+  padding-left: 16px;
+  margin-top: 2px;
+}
+
 .file-item {
   display: flex;
   align-items: center;
@@ -1401,9 +1449,99 @@ body.light-mode .dapp-main {
   cursor: not-allowed;
 }
 
-.compile-btn,
-.deploy-btn {
+.compile-btn {
   background: rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.compile-btn.compiling {
+  padding-left: 28px;
+}
+
+.compile-btn.compiling::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  margin-top: -6px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  will-change: transform;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.compile-text-effect {
+  display: inline-block;
+}
+
+.char-highlight {
+  display: inline-block;
+  animation: highlightChar 0.5s ease-in-out;
+}
+
+@keyframes highlightChar {
+  0%, 100% {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  50% {
+    color: rgba(16, 185, 129, 1);
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  }
+}
+
+/* Decoder Text Effect */
+.decoder-text {
+  font-family: 'Share Tech Mono', monospace;
+  color: #00ff99;
+  text-shadow: 0 0 5px #00ff99, 0 0 15px #00ff99, 0 0 30px #00ff99;
+  display: inline-block;
+}
+
+.decoder-text.decoding .decoder-char {
+  will-change: contents;
+}
+
+.decoder-char {
+  display: inline-block;
+  min-width: 0.5ch;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.terminal-line .decoder-text {
+  font-size: inherit;
+  color: #00ff99;
+  text-shadow: 0 0 3px #00ff99, 0 0 8px #00ff99;
+}
+
+.compile-text-effect .decoder-text {
+  font-size: inherit;
+  color: #00ff99;
+  text-shadow: 0 0 3px #00ff99, 0 0 8px #00ff99;
+  margin-left: 4px;
+}
+
+.deploy-btn {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(16, 185, 129, 0.9);
+}
+
+.deploy-btn:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(16, 185, 129, 1);
 }
 
 .code-editor {
@@ -1432,7 +1570,8 @@ body.light-mode .dapp-main {
 
 .editor-content {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   min-height: 0;
 }
@@ -1450,6 +1589,8 @@ body.light-mode .dapp-main {
   font-size: 13px;
   line-height: 1.6;
   tab-size: 2;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .editor-textarea::placeholder {
