@@ -58,7 +58,7 @@ console.log(JSON.stringify({
 
     // Write script to temp file
     const tempDir = tmpdir();
-    const tempScriptPath = join(tempDir, `compute-${Date.now()}.js`);
+    const tempScriptPath = join(tempDir, `test-${Date.now()}.js`);
     writeFileSync(tempScriptPath, computeScript);
 
     try {
@@ -138,7 +138,7 @@ console.log(JSON.stringify({
       }
 
       // Copy script to VM and execute
-      const remoteScriptPath = `/tmp/compute-${Date.now()}.js`;
+      const remoteScriptPath = `/tmp/test-${Date.now()}.js`;
       
       // Normalize Windows path for SSH (convert backslashes to forward slashes)
       const normalizedKeyPath = sshKeyPath.replace(/\\/g, '/');
@@ -224,11 +224,11 @@ print(json.dumps({
     'timestamp': __import__('datetime').datetime.now().isoformat()
 }))
 `;
-        const pythonScriptPath = join(tmpdir(), `compute-${Date.now()}.py`);
+        const pythonScriptPath = join(tmpdir(), `test-${Date.now()}.py`);
         writeFileSync(pythonScriptPath, pythonScript);
         
         // Copy Python script
-        const pythonRemotePath = `/tmp/compute-${Date.now()}.py`;
+        const pythonRemotePath = `/tmp/test-${Date.now()}.py`;
         const scpPythonCommand = `scp -i "${normalizedKeyPath}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${pythonScriptPath}" ${FLUENCE_VM_USER}@${FLUENCE_VM_IP}:${pythonRemotePath}`;
         
         try {
