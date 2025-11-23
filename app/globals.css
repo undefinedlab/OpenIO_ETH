@@ -100,6 +100,7 @@ body.light-mode .nav-link:hover {
 .navbar-logo {
   display: flex;
   align-items: center;
+  gap: 10px;
   cursor: pointer;
   text-decoration: none;
   transition: opacity 0.3s ease;
@@ -107,6 +108,19 @@ body.light-mode .nav-link:hover {
 
 .navbar-logo:hover {
   opacity: 0.8;
+}
+
+.navbar-logo-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: -0.02em;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  transition: color 0.3s ease;
+}
+
+body.light-mode .navbar-logo-text {
+  color: rgba(0, 0, 0, 0.9);
 }
 
 .logo-image {
@@ -2987,6 +3001,17 @@ body.light-mode .fhe-engine-card {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+.model-item-inactive {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+  pointer-events: none;
+}
+
+.model-item-inactive:hover {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
 .model-avatar {
   width: 40px;
   height: 40px;
@@ -3167,6 +3192,295 @@ body.light-mode .fhe-engine-card {
   
   .models-title {
     font-size: 28px;
+  }
+}
+
+/* Model Detail Modal */
+.model-detail-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.model-detail-modal {
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.model-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.model-detail-title-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.model-detail-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.98);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.model-detail-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.model-detail-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.model-detail-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 1);
+}
+
+.model-detail-content {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 32px;
+  padding: 32px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.model-detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.model-detail-section {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.model-detail-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 16px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.model-detail-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 16px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.model-detail-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.model-detail-author-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.model-detail-author-name {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.model-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.model-detail-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.model-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.model-detail-tag {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.model-detail-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.model-flow-container {
+  width: 100%;
+  height: 400px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.model-flow {
+  width: 100%;
+  height: 100%;
+}
+
+.model-detail-footer {
+  display: flex;
+  gap: 12px;
+  padding: 24px 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  justify-content: flex-end;
+}
+
+.model-detail-action-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  border: 1px solid transparent;
+}
+
+.model-detail-action-btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: rgba(255, 255, 255, 0.98);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.model-detail-action-btn.primary:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.model-detail-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.model-detail-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 968px) {
+  .model-detail-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .model-flow-container {
+    height: 300px;
   }
 }
 
@@ -3706,40 +4020,73 @@ body.light-mode .fhe-engine-card {
   border-color: rgba(255, 255, 255, 0.3);
 }
 
-.builder-save-button-container {
+.builder-save-container {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: 12px;
   margin-left: auto;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
 }
 
-.builder-save-model-button {
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.builder-model-name-input {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.95);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  width: 200px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.builder-model-name-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.builder-model-name-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(102, 126, 234, 0.6);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.builder-save-model-button {
+  padding: 10px 20px;
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.98);
+  font-size: 13px;
+  font-weight: 600;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
-  height: 32px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .builder-save-model-button:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: #1a1a1a;
+  border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .builder-save-model-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: #0a0a0a;
 }
 
 .builder-dropdown:focus {
@@ -3886,86 +4233,186 @@ body.light-mode .fhe-engine-card {
   .builder-ai-sidebar.collapsed {
     width: 48px;
   }
+
+  /* Responsive node styling */
+  .react-flow-dark .react-flow__node-default {
+    padding: 12px 16px;
+    font-size: 13px;
+    min-width: 150px;
+  }
+
+  .react-flow-dark .react-flow__node-default .react-flow__handle {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .builder-flow-container {
+    height: calc(100vh - 120px);
+    min-height: 400px;
+  }
+
+  .react-flow-dark .react-flow__node-default {
+    padding: 10px 14px;
+    font-size: 12px;
+    min-width: 120px;
+  }
+
+  .react-flow-dark .react-flow__node-default .react-flow__handle {
+    width: 7px;
+    height: 7px;
+  }
+
+  .react-flow-dark .react-flow__controls {
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .react-flow-dark .react-flow__minimap {
+    width: 120px;
+    height: 80px;
+  }
 }
 
 /* React Flow Dark Theme */
 .react-flow-dark {
-  background: transparent;
+  background: radial-gradient(circle at center, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
 }
 
 .react-flow-dark .react-flow__node {
-  color: #000000;
-  font-weight: 600;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .react-flow-dark .react-flow__node-default {
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(102, 126, 234, 0.5);
-  border-radius: 8px;
-  padding: 10px 15px;
-  color: #000000;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 15px 20px;
+  color: #ffffff;
   font-size: 14px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 }
 
 .react-flow-dark .react-flow__node-default:hover {
-  border-color: rgba(102, 126, 234, 0.8);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
 .react-flow-dark .react-flow__node-default .react-flow__handle {
-  background: rgba(102, 126, 234, 0.8);
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+/* Hide top and bottom handles, only show left and right */
+.react-flow-dark .react-flow__node-default .react-flow__handle-top,
+.react-flow-dark .react-flow__node-default .react-flow__handle-bottom {
+  display: none;
+}
+
+/* Position handles horizontally (left and right) */
+.react-flow-dark .react-flow__node-default .react-flow__handle-left {
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.react-flow-dark .react-flow__node-default .react-flow__handle-right {
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.react-flow-dark .react-flow__node-default:hover .react-flow__handle-left,
+.react-flow-dark .react-flow__node-default:hover .react-flow__handle-right {
+  transform: translateY(-50%) scale(1.2);
 }
 
 .react-flow-dark .react-flow__edge-path {
-  stroke: rgba(102, 126, 234, 0.6);
-  stroke-width: 2;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px currentColor);
+  transition: all 0.3s ease;
 }
 
 .react-flow-dark .react-flow__edge.selected .react-flow__edge-path {
-  stroke: rgba(102, 126, 234, 1);
-  stroke-width: 3;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 12px currentColor);
 }
 
 .react-flow-dark .react-flow__minimap {
-  background: rgba(0, 0, 0, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
 
 .react-flow-dark .react-flow__minimap-mask {
-  fill: rgba(0, 0, 0, 0.8);
+  fill: rgba(0, 0, 0, 0.7);
 }
 
 .react-flow-dark .react-flow__minimap-node {
-  fill: rgba(102, 126, 234, 0.4);
-  stroke: rgba(102, 126, 234, 0.6);
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-width: 1;
 }
 
 .react-flow-dark .react-flow__controls {
-  background: rgba(0, 0, 0, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
 
 .react-flow-dark .react-flow__controls-button {
   background: rgba(255, 255, 255, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
+  transition: all 0.2s ease;
 }
 
 .react-flow-dark .react-flow__controls-button:hover {
   background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.react-flow-dark .react-flow__controls-button:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.react-flow-dark .react-flow__controls-button:last-child {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .react-flow-dark .react-flow__background {
-  background: transparent;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
 }
 
 .react-flow-dark .react-flow__background-pattern {
-  stroke: rgba(255, 255, 255, 0.05);
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 0.5;
+}
+
+/* Enhanced node animations */
+@keyframes nodeGlow {
+  0%, 100% {
+    box-shadow: 0 4px 20px currentColor40;
+  }
+  50% {
+    box-shadow: 0 6px 30px currentColor60;
+  }
+}
+
+.react-flow-dark .react-flow__node-animated {
+  animation: nodeGlow 2s ease-in-out infinite;
 }
 
 /* Improved Forum Post Stats Styling */

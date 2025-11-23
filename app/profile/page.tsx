@@ -10,12 +10,13 @@ const currentUser = 'openio';
 // Hardcoded earnings data for user's models
 const modelEarnings: Record<string, { revenue: string; executions: string; lastPayout: string }> = {
   'zk-verifier': { revenue: '$1,234.56', executions: '45.2k', lastPayout: '2 days ago' },
-  'zk-arbitrage': { revenue: '$2,891.23', executions: '89.5k', lastPayout: '1 day ago' },
+  // 'zk-arbitrage' removed - only verifier and prover remain (inactive)
   'fhe-encrypt': { revenue: '$567.89', executions: '12.3k', lastPayout: '5 days ago' },
-  'fhe-ckks': { revenue: '$890.12', executions: '23.4k', lastPayout: '4 days ago' },
-  'io-seal': { revenue: '$3,456.78', executions: '156.7k', lastPayout: '3 hours ago' },
+  // 'fhe-ckks' removed - only Key Generation is available
   'io-execute': { revenue: '$1,567.34', executions: '67.8k', lastPayout: '6 hours ago' },
-  'io-contract': { revenue: '$4,123.45', executions: '234.1k', lastPayout: '1 hour ago' },
+  // Other IO models removed - only Evaluation Circuit (Execute) is available
+  // 'io-seal': { revenue: '$3,456.78', executions: '156.7k', lastPayout: '3 hours ago' },
+  // 'io-contract': { revenue: '$4,123.45', executions: '234.1k', lastPayout: '1 hour ago' },
 };
 
 export default function ProfilePage() {

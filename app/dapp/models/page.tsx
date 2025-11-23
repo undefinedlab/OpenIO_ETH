@@ -3,10 +3,13 @@
 import { useState, useMemo } from 'react';
 import Navbar from '../../components/Navbar';
 import { models, Model, ModelCategory, getModelsByCategory } from '../../data/models';
+import { ReactFlow, Background, Controls, MiniMap, Node, Edge } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
 export default function ModelsPage() {
   const [selectedCategory, setSelectedCategory] = useState<ModelCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
 
   const filteredModels = useMemo(() => {
     // Exclude operations from all models
@@ -109,7 +112,12 @@ export default function ModelsPage() {
 
             <div className="models-list">
               {filteredModels.map((model) => (
-                <div key={model.id} className="model-item">
+                <div 
+                  key={model.id} 
+                  className={`model-item ${model.active === false ? 'model-item-inactive' : ''}`}
+                  onClick={() => setSelectedModel(model)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="model-avatar">
                     {model.author[0].toUpperCase()}
                   </div>
@@ -156,7 +164,227 @@ export default function ModelsPage() {
           </div>
         </div>
       </div>
+
+      {/* Model Details Modal */}
+      {selectedModel && (
+        <div className="model-detail-modal-overlay" onClick={() => setSelectedModel(null)}>
+          <div className="model-detail-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="model-detail-header">
+              <div className="model-detail-title-section">
+                <h2 className="model-detail-title">{selectedModel.name}</h2>
+                <span className={`model-detail-badge model-badge-${selectedModel.category}`}>
+                  {selectedModel.category.toUpperCase()}
+                </span>
+              </div>
+              <button 
+                className="model-detail-close"
+                onClick={() => setSelectedModel(null)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="model-detail-content">
+              <div className="model-detail-info">
+                <div className="model-detail-section">
+                  <h3 className="model-detail-section-title">Overview</h3>
+                  <p className="model-detail-description">{selectedModel.description}</p>
+                  <div className="model-detail-author">
+                    <span className="model-detail-author-avatar">
+                      {selectedModel.author[0].toUpperCase()}
+                    </span>
+                    <span className="model-detail-author-name">by {selectedModel.author}</span>
+                  </div>
+                </div>
+
+                <div className="model-detail-section">
+                  <h3 className="model-detail-section-title">Details</h3>
+                  <div className="model-detail-stats">
+                    <div className="model-detail-stat">
+                      <span className="stat-label">Downloads</span>
+                      <span className="stat-value">{selectedModel.downloads}</span>
+                    </div>
+                    <div className="model-detail-stat">
+                      <span className="stat-label">Likes</span>
+                      <span className="stat-value">{selectedModel.likes}</span>
+                    </div>
+                    <div className="model-detail-stat">
+                      <span className="stat-label">Updated</span>
+                      <span className="stat-value">{selectedModel.updated}</span>
+                    </div>
+                    {selectedModel.parameters && (
+                      <div className="model-detail-stat">
+                        <span className="stat-label">Parameters</span>
+                        <span className="stat-value">{selectedModel.parameters}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {selectedModel.tags && selectedModel.tags.length > 0 && (
+                  <div className="model-detail-section">
+                    <h3 className="model-detail-section-title">Tags</h3>
+                    <div className="model-detail-tags">
+                      {selectedModel.tags.map((tag, idx) => (
+                        <span key={idx} className="model-detail-tag">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="model-detail-flow">
+                <h3 className="model-detail-section-title">Logic Flow Preview</h3>
+                <div className="model-flow-container">
+                  <ReactFlow
+                    nodes={getModelFlowNodes(selectedModel)}
+                    edges={getModelFlowEdges(selectedModel)}
+                    fitView
+                    className="model-flow"
+                    style={{
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Background />
+                    <Controls />
+                    <MiniMap 
+                      nodeColor={(node) => {
+                        const categoryColors = {
+                          'zk': '#667eea',
+                          'fhe': '#764ba2',
+                          'io': '#f093fb',
+                          'operation': '#4facfe',
+                        };
+                        return categoryColors[selectedModel.category as keyof typeof categoryColors] || '#667eea';
+                      }}
+                      maskColor="rgba(0, 0, 0, 0.7)"
+                      style={{
+                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </ReactFlow>
+                </div>
+              </div>
+            </div>
+
+            <div className="model-detail-footer">
+              <button className="model-detail-action-btn primary">Use in Builder</button>
+              <button className="model-detail-action-btn secondary">Download</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
+}
+
+// Generate flow nodes based on model category
+function getModelFlowNodes(model: Model): Node[] {
+  const categoryColors = {
+    'zk': '#667eea',
+    'fhe': '#764ba2',
+    'io': '#f093fb',
+    'operation': '#4facfe',
+  };
+
+  const color = categoryColors[model.category as keyof typeof categoryColors] || '#667eea';
+
+  const nodes: Node[] = [
+    {
+      id: 'input',
+      type: 'default',
+      position: { x: 50, y: 150 },
+      data: { label: 'Input' },
+      style: {
+        background: `linear-gradient(135deg, ${color}15, ${color}25)`,
+        border: `2px solid ${color}`,
+        borderRadius: '12px',
+        color: '#ffffff',
+        fontWeight: 600,
+        fontSize: '14px',
+        padding: '15px 20px',
+        minWidth: '120px',
+        textAlign: 'center' as const,
+      },
+    },
+    {
+      id: 'process',
+      type: 'default',
+      position: { x: 250, y: 150 },
+      data: { label: model.name },
+      style: {
+        background: `linear-gradient(135deg, ${color}25, ${color}35)`,
+        border: `2px solid ${color}`,
+        borderRadius: '12px',
+        color: '#ffffff',
+        fontWeight: 600,
+        fontSize: '14px',
+        padding: '15px 20px',
+        minWidth: '180px',
+        textAlign: 'center' as const,
+        boxShadow: `0 4px 12px ${color}40`,
+      },
+    },
+    {
+      id: 'output',
+      type: 'default',
+      position: { x: 500, y: 150 },
+      data: { label: 'Output' },
+      style: {
+        background: `linear-gradient(135deg, ${color}15, ${color}25)`,
+        border: `2px solid ${color}`,
+        borderRadius: '12px',
+        color: '#ffffff',
+        fontWeight: 600,
+        fontSize: '14px',
+        padding: '15px 20px',
+        minWidth: '120px',
+        textAlign: 'center' as const,
+      },
+    },
+  ];
+
+  return nodes;
+}
+
+// Generate flow edges
+function getModelFlowEdges(model: Model): Edge[] {
+  const categoryColors = {
+    'zk': '#667eea',
+    'fhe': '#764ba2',
+    'io': '#f093fb',
+    'operation': '#4facfe',
+  };
+
+  const color = categoryColors[model.category as keyof typeof categoryColors] || '#667eea';
+
+  return [
+    {
+      id: 'e1-2',
+      source: 'input',
+      target: 'process',
+      type: 'smoothstep',
+      style: {
+        stroke: color,
+        strokeWidth: 3,
+      },
+      animated: true,
+    },
+    {
+      id: 'e2-3',
+      source: 'process',
+      target: 'output',
+      type: 'smoothstep',
+      style: {
+        stroke: color,
+        strokeWidth: 3,
+      },
+      animated: true,
+    },
+  ];
 }
 

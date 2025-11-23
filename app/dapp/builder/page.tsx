@@ -48,7 +48,7 @@ export function processSealed(input: any) {
 };
 
 export default function BuilderPage() {
-  const [mode, setMode] = useState<'code' | 'node'>('code');
+  const [mode, setMode] = useState<'code' | 'node'>('node');
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [selectedZK, setSelectedZK] = useState('');
@@ -57,6 +57,7 @@ export default function BuilderPage() {
   const [selectedOp, setSelectedOp] = useState('');
   const [selectedCustom, setSelectedCustom] = useState('');
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(true);
+  const [modelName, setModelName] = useState<string>('');
   
   // Code Mode state
   const [customModules, setCustomModules] = useState<CustomModule[]>([]);
@@ -70,8 +71,18 @@ export default function BuilderPage() {
   const [newFileName, setNewFileName] = useState<string>('');
 
   const zkModels = useMemo(() => getModelsByCategory('zk'), []);
-  const fheModels = useMemo(() => getModelsByCategory('fhe'), []);
-  const ioModels = useMemo(() => getModelsByCategory('io'), []);
+  // Filter FHE models to only show key generation model
+  const fheModels = useMemo(() => {
+    const allFHE = getModelsByCategory('fhe');
+    // Keep only the first FHE encryption engine (key generation)
+    return allFHE.filter(m => m.id === 'fhe-encrypt');
+  }, []);
+  // Filter IO models to only show evaluation circuit (execute)
+  const ioModels = useMemo(() => {
+    const allIO = getModelsByCategory('io');
+    // Keep only the evaluation circuit (execute coprocessor)
+    return allIO.filter(m => m.id === 'io-execute');
+  }, []);
   const opModels = useMemo(() => getModelsByCategory('operation'), []);
 
   // Get custom modules by category
@@ -99,19 +110,75 @@ export default function BuilderPage() {
   );
   
   const onConnect = useCallback(
-    (params: any) => setEdges((eds) => addEdge(params, eds)),
-    []
+    (params: any) => {
+      const sourceNode = nodes.find(n => n.id === params.source);
+      const category = sourceNode?.data?.category || 'custom';
+      
+      const categoryColors = {
+        'zk': '#667eea',
+        'fhe': '#764ba2', 
+        'io': '#f093fb',
+        'operation': '#4facfe',
+        'custom': '#a8edea'
+      };
+
+      const color = categoryColors[category as keyof typeof categoryColors] || categoryColors.custom;
+      
+      const newEdge = {
+        ...params,
+        type: 'smoothstep',
+        style: {
+          stroke: color,
+          strokeWidth: 3,
+          filter: `drop-shadow(0 2px 8px ${color}60)`
+        },
+        animated: true,
+        animationSpeed: 1.2,
+      };
+      
+      setEdges((eds) => addEdge(newEdge, eds));
+    },
+    [nodes]
   );
 
   const addNode = useCallback((label: string, category: string, moduleId?: string) => {
+    // Define colors for each category
+    const categoryColors = {
+      'zk': '#667eea',
+      'fhe': '#764ba2', 
+      'io': '#f093fb',
+      'operation': '#4facfe',
+      'custom': '#a8edea'
+    };
+
+    const color = categoryColors[category as keyof typeof categoryColors] || categoryColors.custom;
+    
     const newNode: Node = {
       id: `${category}-${Date.now()}`,
       position: { 
         x: Math.random() * 400 + 100, 
         y: Math.random() * 300 + 100 
       },
-      data: { label, moduleId },
+      data: { 
+        label, 
+        moduleId,
+        category 
+      },
       type: 'default',
+      sourcePosition: 'right',
+      targetPosition: 'left',
+      style: {
+        background: `linear-gradient(135deg, ${color}15, ${color}25)`,
+        border: `2px solid ${color}`,
+        borderRadius: '12px',
+        color: '#ffffff',
+        fontWeight: 600,
+        fontSize: '14px',
+        boxShadow: `0 4px 12px ${color}40`,
+        padding: '15px 20px',
+        minWidth: '180px',
+        textAlign: 'center' as const,
+      },
     };
     setNodes((nds) => [...nds, newNode]);
   }, []);
@@ -222,7 +289,8 @@ export default function BuilderPage() {
         }
       } else {
         const model = zkModels.find(m => m.id === value);
-        if (model) {
+        // Prevent adding inactive models
+        if (model && model.active !== false) {
           addNode(model.name, 'zk');
         }
       }
@@ -296,27 +364,30 @@ export default function BuilderPage() {
   };
 
   const handleSaveModel = useCallback(() => {
+    if (!modelName.trim()) {
+      alert('Please enter a model name');
+      return;
+    }
+    
     const modelData = {
+      id: `model-${Date.now()}`,
+      name: modelName.trim(),
       nodes,
       edges,
       savedAt: new Date().toISOString(),
     };
     
-    // Convert to JSON and download
-    const dataStr = JSON.stringify(modelData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `model-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Save to localStorage
+    const savedModels = JSON.parse(localStorage.getItem('openio-saved-models') || '[]');
+    savedModels.push(modelData);
+    localStorage.setItem('openio-saved-models', JSON.stringify(savedModels));
     
-    // Optional: Show success message
-    alert('Model saved successfully!');
-  }, [nodes, edges]);
+    // Clear the model name input
+    setModelName('');
+    
+    // Show success message
+    alert(`Model "${modelData.name}" saved successfully!`);
+  }, [nodes, edges, modelName]);
 
   return (
     <>
@@ -387,7 +458,7 @@ export default function BuilderPage() {
                 value={selectedZK}
                 onChange={(e) => handleZKChange(e.target.value)}
               >
-                <option value="">Add ZK Circuit</option>
+                <option value="" disabled hidden>Select model</option>
                 {customZKModules.length > 0 && (
                   <optgroup label="Custom Modules">
                     {customZKModules.map(module => (
@@ -397,13 +468,20 @@ export default function BuilderPage() {
                     ))}
                   </optgroup>
                 )}
-                <optgroup label="Pre-built Models">
-                  {zkModels.map(model => (
-                    <option key={model.id} value={model.id}>
-                      {model.name}
-                    </option>
-                  ))}
-                </optgroup>
+                {zkModels.length > 0 && (
+                  <optgroup label="Pre-built Models">
+                    {zkModels.map(model => (
+                      <option 
+                        key={model.id} 
+                        value={model.id}
+                        disabled={model.active === false}
+                        style={model.active === false ? { color: '#666', fontStyle: 'italic' } : {}}
+                      >
+                        {model.name}{model.active === false ? ' (Inactive)' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
 
@@ -414,7 +492,7 @@ export default function BuilderPage() {
                 value={selectedFHE}
                 onChange={(e) => handleFHEChange(e.target.value)}
               >
-                <option value="">Add FHE Engine</option>
+                <option value="" disabled hidden>Select model</option>
                 {customFHEModules.length > 0 && (
                   <optgroup label="Custom Modules">
                     {customFHEModules.map(module => (
@@ -424,13 +502,15 @@ export default function BuilderPage() {
                     ))}
                   </optgroup>
                 )}
-                <optgroup label="Pre-built Models">
-                  {fheModels.map(model => (
-                    <option key={model.id} value={model.id}>
-                      {model.name}
-                    </option>
-                  ))}
-                </optgroup>
+                {fheModels.length > 0 && (
+                  <optgroup label="Pre-built Models">
+                    {fheModels.map(model => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
 
@@ -441,7 +521,7 @@ export default function BuilderPage() {
                 value={selectedIO}
                 onChange={(e) => handleIOChange(e.target.value)}
               >
-                <option value="">Add iO Coprocessor</option>
+                <option value="" disabled hidden>Select model</option>
                 {customIOModules.length > 0 && (
                   <optgroup label="Custom Modules">
                     {customIOModules.map(module => (
@@ -451,13 +531,15 @@ export default function BuilderPage() {
                     ))}
                   </optgroup>
                 )}
-                <optgroup label="Pre-built Models">
-                  {ioModels.map(model => (
-                    <option key={model.id} value={model.id}>
-                      {model.name}
-                    </option>
-                  ))}
-                </optgroup>
+                {ioModels.length > 0 && (
+                  <optgroup label="Pre-built Models">
+                    {ioModels.map(model => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
 
@@ -468,7 +550,7 @@ export default function BuilderPage() {
                 value={selectedOp}
                 onChange={(e) => handleOpChange(e.target.value)}
               >
-                <option value="">Add Operation</option>
+                <option value="" disabled hidden>Select model</option>
                 {customOpModules.length > 0 && (
                   <optgroup label="Custom Modules">
                     {customOpModules.map(module => (
@@ -478,13 +560,15 @@ export default function BuilderPage() {
                     ))}
                   </optgroup>
                 )}
-                <optgroup label="Pre-built Models">
-                  {opModels.map(model => (
-                    <option key={model.id} value={model.id}>
-                      {model.name}
-                    </option>
-                  ))}
-                </optgroup>
+                {opModels.length > 0 && (
+                  <optgroup label="Pre-built Models">
+                    {opModels.map(model => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
 
@@ -495,7 +579,6 @@ export default function BuilderPage() {
                 value={selectedCustom}
                 onChange={(e) => handleCustomChange(e.target.value)}
               >
-                <option value="">Add Custom Module</option>
                 {allCustomModules.length > 0 ? (
                   allCustomModules.map(module => (
                     <option key={module.id} value={module.id}>
@@ -508,7 +591,15 @@ export default function BuilderPage() {
               </select>
             </div>
             
-            <div className="builder-save-button-container">
+            <div className="builder-save-container">
+              <input
+                type="text"
+                className="builder-model-name-input"
+                placeholder="Model name"
+                value={modelName}
+                onChange={(e) => setModelName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSaveModel()}
+              />
               <button 
                 className="builder-save-model-button"
                 onClick={handleSaveModel}
@@ -555,15 +646,41 @@ export default function BuilderPage() {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                defaultEdgeOptions={{
+                  type: 'smoothstep',
+                  animated: true,
+                }}
                 fitView
                 className="react-flow-dark"
+                style={{
+                  background: `radial-gradient(circle at center, 
+                    rgba(102, 126, 234, 0.05) 0%, 
+                    rgba(118, 75, 162, 0.03) 25%, 
+                    rgba(240, 147, 251, 0.03) 50%, 
+                    rgba(79, 172, 254, 0.03) 75%, 
+                    transparent 100%)`
+                }}
               >
                 <Background />
                 <Controls />
                 <MiniMap 
-                  nodeColor="#667eea"
-                  maskColor="rgba(0, 0, 0, 0.8)"
-                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
+                  nodeColor={(node) => {
+                    const categoryColors = {
+                      'zk': '#667eea',
+                      'fhe': '#764ba2',
+                      'io': '#f093fb',
+                      'operation': '#4facfe',
+                      'custom': '#a8edea'
+                    };
+                    const category = node.data?.category || 'custom';
+                    return categoryColors[category as keyof typeof categoryColors] || categoryColors.custom;
+                  }}
+                  maskColor="rgba(0, 0, 0, 0.7)"
+                  style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '12px'
+                  }}
                 />
               </ReactFlow>
             </div>

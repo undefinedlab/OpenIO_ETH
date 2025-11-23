@@ -45,11 +45,12 @@ export default function Navbar() {
             priority
             unoptimized
           />
+          <span className="navbar-logo-text">openio</span>
         </Link>
         <div className="navbar-links">
           <Link href="/dapp/models" className="nav-link">Models</Link>
-          <Link href="/dapp/builder" className="nav-link">Builder</Link>
-          <Link href="/dapp/deploy" className="nav-link">Deploy</Link>
+          <Link href="/dapp/builder" className="nav-link">Build</Link>
+          <Link href="/dapp/deploy" className="nav-link">Run</Link>
           <Link href="/community" className="nav-link">Community</Link>
           <Link href="/docs" className="nav-link">Docs</Link>
           <Link href="/profile" className="nav-link">Profile</Link>

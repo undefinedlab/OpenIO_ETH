@@ -22,7 +22,7 @@ export default function DappHeader() {
         </div>
         <div className="dapp-header-right">
           <Link href="/dapp/builder" className="dapp-builder-btn">
-            Builder
+            Build
           </Link>
         </div>
       </div>
